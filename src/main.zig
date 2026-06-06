@@ -32,11 +32,17 @@ pub fn main(init: std.process.Init) !void {
     try stdout.flush();
 
     var cursor_idx: usize = 0;
+    var errors_count: usize = 0;
+    var opt_time: ?std.Io.Timestamp = null;
     while (true) {
         const symbol = stdin.takeByte() catch |err| switch(err) {
             error.EndOfStream => break,
             error.ReadFailed => break,
         };
+
+        if (opt_time == null) {
+            opt_time = std.Io.Clock.awake.now(io);
+        }
 
         if (symbol == 127) {
             if (cursor_idx > 0) {
@@ -57,6 +63,7 @@ pub fn main(init: std.process.Init) !void {
             try stdout.print("{s}{c}", .{ Ansi.red, symbol });
             try stdout.flush();
             cursor_idx += 1;
+            errors_count += 1;
         }
 
         if (cursor_idx == target_text.len) {
@@ -65,4 +72,25 @@ pub fn main(init: std.process.Init) !void {
             break;
         }
     }
+
+    const elapsed_s = if (opt_time) |start|
+        @as(f64, @floatFromInt(start.untilNow(io, .awake).toNanoseconds())) / 1_000_000_000.0
+    else
+        0.0;
+
+    const len_f64: f64 = @floatFromInt(target_text.len);
+    const err_f64: f64 = @floatFromInt(errors_count);
+    const accuracy = @max(0.0, (1.0 - (err_f64 / len_f64)) * 100.0);
+
+    const wmp = if (elapsed_s > 0) (len_f64 / 5.0) / (elapsed_s / 60.0) else 0.0;
+
+    try stdout.print("{s}Symbols: {}\nErrors: {}\nAccuracy: {d:.2}%\nTime: {d:.2}s\nWPM: {d:.2}\n", .{
+        Ansi.reset,
+        target_text.len,
+        errors_count,
+        accuracy,
+        elapsed_s,
+        wmp,
+    });
+    try stdout.flush();
 }
