@@ -82,7 +82,7 @@ pub fn main(init: std.process.Init) !void {
     const err_f64: f64 = @floatFromInt(errors_count);
     const accuracy = @max(0.0, (1.0 - (err_f64 / len_f64)) * 100.0);
 
-    const wmp = if (elapsed_s > 0) (len_f64 / 5.0) / (elapsed_s / 60.0) else 0.0;
+    const wpm = if (elapsed_s > 0) (len_f64 / 5.0) / (elapsed_s / 60.0) else 0.0;
 
     try stdout.print("{s}Symbols: {}\nErrors: {}\nAccuracy: {d:.2}%\nTime: {d:.2}s\nWPM: {d:.2}\n", .{
         Ansi.reset,
@@ -90,7 +90,7 @@ pub fn main(init: std.process.Init) !void {
         errors_count,
         accuracy,
         elapsed_s,
-        wmp,
+        wpm,
     });
     try stdout.flush();
 }
