@@ -1,10 +1,12 @@
 const std = @import("std");
 const posix = std.posix;
 
-const green = "\x1b[32m";
-const red = "\x1b[31m";
-const reset = "\x1b[0m";
-const left = "\x1b[1D";
+const Ansi = struct {
+    pub const green = "\x1b[32m";
+    pub const red = "\x1b[31m";
+    pub const reset = "\x1b[0m";
+    pub const left = "\x1b[1D";
+};
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -40,19 +42,19 @@ pub fn main(init: std.process.Init) !void {
             if (cursor_idx > 0) {
                 cursor_idx -= 1;
                 try stdout.print("{s}{s}{c}{s}", .{
-                    left,
-                    reset,
+                    Ansi.left,
+                    Ansi.reset,
                     target_text[cursor_idx],
-                    left
+                    Ansi.left,
                 });
                 try stdout.flush();
             }
         } else if (symbol == target_text[cursor_idx]) {
-            try stdout.print("{s}{c}", .{ green, symbol });
+            try stdout.print("{s}{c}", .{ Ansi.green, symbol });
             try stdout.flush();
             cursor_idx += 1;
         } else {
-            try stdout.print("{s}{c}", .{ red, symbol });
+            try stdout.print("{s}{c}", .{ Ansi.red, symbol });
             try stdout.flush();
             cursor_idx += 1;
         }
